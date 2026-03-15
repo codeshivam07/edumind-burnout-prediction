@@ -5,16 +5,11 @@ import os
 
 app = FastAPI(title="EduMind ML API")
 
-# ===============================
-# Get project root path
-# ===============================
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# FIXED PATH
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_PATH = os.path.join(BASE_DIR, "models")
 
-# ===============================
-# Load models
-# ===============================
 
 burnout_model = joblib.load(os.path.join(MODELS_PATH, "model.pkl"))
 burnout_features = joblib.load(os.path.join(MODELS_PATH, "feature_columns.pkl"))
@@ -28,24 +23,13 @@ academic_features = joblib.load(os.path.join(MODELS_PATH, "academic_feature_colu
 
 print("Models loaded successfully")
 
-# ===============================
-# Home route
-# ===============================
 
 @app.get("/")
 def home():
     return {"message": "EduMind ML API Running"}
 
-# ===============================
-# Prediction route
-# ===============================
-
 @app.post("/predict")
 def predict(data: dict):
-
-    # -------------------------
-    # Burnout Prediction
-    # -------------------------
 
     burnout_df = pd.DataFrame([data])
 
@@ -57,9 +41,6 @@ def predict(data: dict):
 
     burnout_pred = burnout_model.predict(burnout_df)[0]
 
-    # -------------------------
-    # Student Clustering
-    # -------------------------
 
     cluster_df = pd.DataFrame([data])
 
