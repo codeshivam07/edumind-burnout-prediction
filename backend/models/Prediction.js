@@ -5,12 +5,17 @@ const PredictionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true   // 🔥 important
+    required: true
   },
 
-  anxiety: Number,
-  depression: Number,
-  stress: Number,
+  anxiety: { type: Number, required: true },
+  depression: { type: Number, required: true },
+  stress: { type: Number, required: true },
+
+  // 🔥 added missing fields
+  sleep_hours: { type: Number, required: true },
+  study_hours: { type: Number, required: true },
+  social_support: { type: Number, required: true },
 
   burnout_score: Number,
   student_cluster: Number,

@@ -5,8 +5,6 @@ import os
 
 app = FastAPI(title="EduMind ML API")
 
-
-# FIXED PATH
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_PATH = os.path.join(BASE_DIR, "models")
 
@@ -53,11 +51,6 @@ def predict(data: dict):
     cluster_scaled = cluster_scaler.transform(cluster_df)
 
     cluster_pred = cluster_model.predict(cluster_scaled)[0]
-
-    # -------------------------
-    # Academic Prediction
-    # -------------------------
-
     academic_df = pd.DataFrame([data])
 
     for col in academic_features:
@@ -67,10 +60,6 @@ def predict(data: dict):
     academic_df = academic_df[academic_features]
 
     academic_pred = academic_model.predict(academic_df)[0]
-
-    # -------------------------
-    # Response
-    # -------------------------
 
     return {
         "burnout_score": int(burnout_pred),
