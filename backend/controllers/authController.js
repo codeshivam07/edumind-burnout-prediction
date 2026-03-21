@@ -1,22 +1,24 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+
 console.log("User model:", User);
 
-// REGISTER USER
+// ================= REGISTER =================
 exports.registerUser = async (req, res) => {
   try {
     console.log("Register request received:", req.body);
 
     const { email, password } = req.body;
 
+    // Validation
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required"
       });
     }
 
-    // check if user already exists
+    // Check existing user
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -25,10 +27,10 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    // hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
+    // Create user
     const user = new User({
       email,
       password: hashedPassword
@@ -43,7 +45,6 @@ exports.registerUser = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error("Registration Error:", error);
 
     res.status(500).json({
@@ -53,13 +54,21 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// LOGIN USER
-exports.loginUser = async (req, res) => {
 
+// ================= LOGIN =================
+exports.loginUser = async (req, res) => {
   try {
 
     const { email, password } = req.body;
 
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required"
+      });
+    }
+
+    // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -68,6 +77,7 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    // Compare password
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
@@ -76,19 +86,23 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    // 🔥 IMPORTANT: include user id in token
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, email: user.email },   // added email (optional but useful)
       process.env.JWT_SECRET || "secret123",
       { expiresIn: "1d" }
     );
 
     res.json({
       message: "Login successful",
-      token
+      token,
+      user: {
+        id: user._id,
+        email: user.email
+      }
     });
 
   } catch (error) {
-
     console.error("Login Error:", error);
 
     res.status(500).json({

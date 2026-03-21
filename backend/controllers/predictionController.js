@@ -2,35 +2,58 @@ const { getPrediction } = require("../services/mlService");
 const Prediction = require("../models/Prediction");
 
 exports.predict = async (req, res) => {
-    try {
+  try {
+    const data = req.body;
 
-        const data = req.body;
+   
+    const prediction = await getPrediction(data);
 
-        // Call FastAPI ML API
-        const prediction = await getPrediction(data);
+   
+    const savedPrediction = new Prediction({
+      userId: req.user.id,   
 
-        // Save prediction to MongoDB
-        const savedPrediction = new Prediction({
-            ...data,
-            burnout_score: prediction.burnout_score,
-            student_cluster: prediction.student_cluster,
-            academic_prediction: prediction.academic_prediction
-        });
+      anxiety: data.anxiety,
+      depression: data.depression,
+      stress: data.stress,
 
-        await savedPrediction.save();
+      burnout_score: prediction.burnout_score,
+      student_cluster: prediction.student_cluster,
+      academic_prediction: prediction.academic_prediction
+    });
 
-        res.json({
-            message: "Prediction generated successfully",
-            prediction
-        });
+    await savedPrediction.save();
 
-    } catch (error) {
+    res.json({
+      message: "Prediction saved successfully",
+      prediction
+    });
 
-        console.error("Prediction Error:", error);
+  } catch (error) {
+    console.error("Prediction Error:", error);
 
-        res.status(500).json({
-            message: "Prediction failed",
-            error: error.message
-        });
-    }
+    res.status(500).json({
+      message: "Prediction failed",
+      error: error.message
+    });
+  }
+};
+
+
+
+exports.getUserPredictions = async (req, res) => {
+  try {
+
+    const predictions = await Prediction.find({
+      userId: req.user.id   
+    }).sort({ createdAt: 1 });  
+    res.json(predictions);
+
+  } catch (error) {
+    console.error("History Fetch Error:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch predictions",
+      error: error.message
+    });
+  }
 };
