@@ -9,12 +9,13 @@ exports.registerUser = async (req, res) => {
   try {
     console.log("Register request received:", req.body);
 
-    const { email, password } = req.body;
+    // 🔥 FIX: include name
+    const { name, email, password } = req.body;
 
     // Validation
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({
-        message: "Email and password are required"
+        message: "Name, email and password are required"
       });
     }
 
@@ -32,6 +33,7 @@ exports.registerUser = async (req, res) => {
 
     // Create user
     const user = new User({
+      name, // 🔥 IMPORTANT FIX
       email,
       password: hashedPassword
     });
@@ -40,8 +42,21 @@ exports.registerUser = async (req, res) => {
 
     console.log("User saved to MongoDB");
 
+    // 🔥 Optional: return token directly after register
+    const token = jwt.sign(
+      { id: user._id, name: user.name, email: user.email },
+      process.env.JWT_SECRET || "secret123",
+      { expiresIn: "1d" }
+    );
+
     res.json({
-      message: "User registered successfully"
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
     });
 
   } catch (error) {
@@ -86,9 +101,9 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    // 🔥 IMPORTANT: include user id in token
+    // 🔥 include name in token
     const token = jwt.sign(
-      { id: user._id, email: user.email },   // added email (optional but useful)
+      { id: user._id, name: user.name, email: user.email },
       process.env.JWT_SECRET || "secret123",
       { expiresIn: "1d" }
     );
@@ -98,6 +113,7 @@ exports.loginUser = async (req, res) => {
       token,
       user: {
         id: user._id,
+        name: user.name, // 🔥 IMPORTANT for frontend
         email: user.email
       }
     });
